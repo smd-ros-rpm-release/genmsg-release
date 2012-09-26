@@ -1,0 +1,16 @@
+Source: ros-fuerte-genmsg
+Section: misc
+Priority: extra
+Maintainer: Ken Conley <kwc@willowgarage.com>
+Build-Depends: debhelper (>= 7.0.50~), ros-fuerte-catkin
+Homepage: http://www.ros.org/wiki/genmsg
+Standards-Version: 3.9.2
+
+Package: ros-fuerte-genmsg
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, 
+Description: Willow Garage low level build system macros and infrastructure
+ .
+ This stack contains the packages:
+ * genmsg: Standalone Python library for generating ROS message and service data structures in Python, C++, LISP, and other languages.
+
