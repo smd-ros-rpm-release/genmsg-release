@@ -64,6 +64,12 @@ macro(add_message_files)
     message(FATAL_ERROR "add_message_files() directory not found: ${MESSAGE_DIR}")
   endif()
 
+  # if FILES are not passed search message files in the given directory
+  list(FIND ARGV "FILES" _index)
+  if(_index EQUAL -1)
+    file(GLOB ARG_FILES RELATIVE "${MESSAGE_DIR}" "${MESSAGE_DIR}/*.msg")
+    list(SORT ARG_FILES)
+  endif()
   _prepend_path(${MESSAGE_DIR} "${ARG_FILES}" FILES_W_PATH)
 
   list(APPEND ${PROJECT_NAME}_MESSAGE_FILES ${FILES_W_PATH})
@@ -73,7 +79,7 @@ macro(add_message_files)
   endforeach()
 
   # remember path to messages to resolve them as dependencies
-  list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_BUILDSPACE ${MESSAGE_DIR})
+  list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE ${MESSAGE_DIR})
 
   if(NOT ARG_NOINSTALL)
     # ensure that destination variables are initialized
@@ -101,6 +107,12 @@ macro(add_service_files)
     message(FATAL_ERROR "add_service_files() directory not found: ${SERVICE_DIR}")
   endif()
 
+  # if FILES are not passed search service files in the given directory
+  list(FIND ARGV "FILES" _index)
+  if(_index EQUAL -1)
+    file(GLOB ARG_FILES RELATIVE "${SERVICE_DIR}" "${SERVICE_DIR}/*.srv")
+    list(SORT ARG_FILES)
+  endif()
   _prepend_path(${SERVICE_DIR} "${ARG_FILES}" FILES_W_PATH)
 
   list(APPEND ${PROJECT_NAME}_SERVICE_FILES ${FILES_W_PATH})
@@ -138,28 +150,30 @@ macro(generate_messages)
     set(GEN_LANGS ${CATKIN_MESSAGE_GENERATORS})
   endif()
 
-  if (@BUILDSPACE@)
-    set(genmsg_CMAKE_DIR @CMAKE_CURRENT_SOURCE_DIR@/cmake)
-  else()
-    set(genmsg_CMAKE_DIR @PKG_CMAKE_DIR@)
-  endif()
+@[if DEVELSPACE]@
+  # cmake dir in develspace
+  set(genmsg_CMAKE_DIR @(CMAKE_CURRENT_SOURCE_DIR)/cmake)
+@[else]@
+  # cmake dir in installspace
+  set(genmsg_CMAKE_DIR @(PKG_CMAKE_DIR))
+@[end if]@
 
   # ensure that destination variables are initialized
   catkin_destinations()
 
-  # generate buildspace config of message include dirs for project
-  set(PKG_MSG_INCLUDE_DIRS "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_BUILDSPACE}")
+  # generate devel space config of message include dirs for project
+  set(PKG_MSG_INCLUDE_DIRS "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE}")
   configure_file(
     ${genmsg_CMAKE_DIR}/pkg-msg-paths.cmake.in
-    ${CATKIN_BUILD_PREFIX}/share/${PROJECT_NAME}/cmake/${PROJECT_NAME}-msg-paths.cmake
-    @ONLY)
+    ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/${PROJECT_NAME}-msg-paths.cmake
+    @@ONLY)
   # generate and install config of message include dirs for project
   _prepend_path(${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME} "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_INSTALLSPACE}" INCLUDE_DIRS_W_PATH)
   set(PKG_MSG_INCLUDE_DIRS "${INCLUDE_DIRS_W_PATH}")
   configure_file(
     ${genmsg_CMAKE_DIR}/pkg-msg-paths.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/installspace/${PROJECT_NAME}-msg-paths.cmake
-    @ONLY)
+    @@ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/installspace/${PROJECT_NAME}-msg-paths.cmake
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake)
 
@@ -173,9 +187,9 @@ macro(generate_messages)
     foreach(workspace ${CATKIN_WORKSPACES})
       list(APPEND workspaces ${workspace})
     endforeach()
-    list(FIND workspaces ${CATKIN_BUILD_PREFIX} _index)
+    list(FIND workspaces ${CATKIN_DEVEL_PREFIX} _index)
     if(_index EQUAL -1)
-      list(INSERT workspaces 0 ${CATKIN_BUILD_PREFIX})
+      list(INSERT workspaces 0 ${CATKIN_DEVEL_PREFIX})
     endif()
 
     unset(config CACHE)
