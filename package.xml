@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>genmsg</name>
-  <version>0.4.14</version>
+  <version>0.4.15</version>
   <description>
     Standalone Python library for generating ROS message and service data structures for various languages.
   </description>
@@ -16,7 +16,7 @@
   <author>Morten Kjaergaard</author>
   <author>Ken Conley</author>
 
-  <build_depend>catkin</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
   <export>
     <rosdoc config="rosdoc.yaml"/>
