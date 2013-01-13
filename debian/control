@@ -1,0 +1,12 @@
+Source: ros-groovy-genmsg
+Section: misc
+Priority: extra
+Maintainer: Dirk Thomas <dthomas@willowgarage.com>
+Build-Depends: debhelper (>= 7.0.50~), ros-groovy-catkin
+Homepage: http://www.ros.org/wiki/genmsg
+Standards-Version: 3.9.2
+
+Package: ros-groovy-genmsg
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, 
+Description: Standalone Python library for generating ROS message and service data structures for various languages.
