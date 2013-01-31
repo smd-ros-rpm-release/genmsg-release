@@ -60,7 +60,7 @@ Such a project contains:
 * Definitions of certain CMake macros to make the generator accessible by the build system.
 
 Generator Scripts
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 The recommended way of implementing the generator is by using empy
 template files. See: http://www.alcyone.com/software/empy A empy
@@ -105,35 +105,28 @@ for example template files.
 
 If the language requires a common file to exists for all the generated
 source code files (Such as __init__.py for python) it is possible to
-specify a ``module_template_map``.  See
+specify a ``module_tempalte_map``.  See
 https://github.com/ros/genpybindings/blob/master/scripts/module.cpp.template
 for example of this.
 
 
-Catkin (fuerte)
-~~~~~~~~~~~~~~~
+:ref:`stack.xml <catkin:stack.xml>`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Each language is identified by a name which must be specified in the stack.xml file.
+The example entry for the generator for C++ is:
 
-In catkin fuerte, message generators declared their contribution in the stack.xml file.
-
-The example entry for the generator for C++ is::
-
-  <message_generator>cpp</message_generator>
+``Catkin-ROS-Message-Generator: cpp``
 
 The project name for the generator with identifier ``X`` should be ``genX``.
 
-Catkin (groovy)
-~~~~~~~~~~~~~~~
-In catkin groovy, message generators declared their contribution in the package.xml file::
-
-  <message_generator>cpp</message_generator>
 
 Providing cmake code to catkin
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Generator packages define several macros (below), and use catkin
 mechanisms to make the definitions of these macros available, see
-``catkin_package``.  catkin will generate calls to them for
+``catkin_project``.  catkin will generate calls to them for
 
 * each message
 * each service
