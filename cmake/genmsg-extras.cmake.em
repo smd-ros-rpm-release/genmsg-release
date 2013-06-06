@@ -37,10 +37,18 @@ endif()
 debug_message(1 "Using these message generators: ${CATKIN_MESSAGE_GENERATORS}")
 
 macro(_prepend_path ARG_PATH ARG_FILES ARG_OUTPUT_VAR)
+  cmake_parse_arguments(ARG "UNIQUE" "" "" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "_prepend_path() called with unused arguments: ${ARG_UNPARSED_ARGUMENTS}")
+  endif()
   # todo, check for proper path, slasheds, etc
   set(${ARG_OUTPUT_VAR} "")
-  foreach(file ${ARG_FILES})
-    list(APPEND ${ARG_OUTPUT_VAR} ${ARG_PATH}/${file})
+  foreach(_file ${ARG_FILES})
+    set(_value ${ARG_PATH}/${_file})
+    list(FIND ${ARG_OUTPUT_VAR} ${_value} _index)
+    if(NOT ARG_UNIQUE OR _index EQUAL -1)
+      list(APPEND ${ARG_OUTPUT_VAR} ${_value})
+    endif()
   endforeach()
 endmacro()
 
@@ -64,6 +72,10 @@ macro(add_message_files)
     message(FATAL_ERROR "add_message_files() directory not found: ${MESSAGE_DIR}")
   endif()
 
+  if(${PROJECT_NAME}_GENERATE_MESSAGES)
+    message(FATAL_ERROR "generate_messages() must be called after add_message_files()")
+  endif()
+
   # if FILES are not passed search message files in the given directory
   # note: ARGV is not variable, so it can not be passed to list(FIND) directly
   set(_argv ${ARGV})
@@ -81,7 +93,10 @@ macro(add_message_files)
   endforeach()
 
   # remember path to messages to resolve them as dependencies
-  list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE ${MESSAGE_DIR})
+  list(FIND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE ${MESSAGE_DIR} _index)
+  if(_index EQUAL -1)
+    list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE ${MESSAGE_DIR})
+  endif()
 
   if(NOT ARG_NOINSTALL)
     # ensure that destination variables are initialized
@@ -107,6 +122,10 @@ macro(add_service_files)
 
   if(NOT IS_DIRECTORY ${SERVICE_DIR})
     message(FATAL_ERROR "add_service_files() directory not found: ${SERVICE_DIR}")
+  endif()
+
+  if(${PROJECT_NAME}_GENERATE_MESSAGES)
+    message(FATAL_ERROR "generate_messages() must be called after add_service_files()")
   endif()
 
   # if FILES are not passed search service files in the given directory
@@ -136,6 +155,11 @@ endmacro()
 
 macro(generate_messages)
   cmake_parse_arguments(ARG "" "" "DEPENDENCIES;LANGS" ${ARGN})
+
+  if(${PROJECT_NAME}_GENERATE_MESSAGES)
+    message(FATAL_ERROR "generate_messages() must only be called once per project'")
+  endif()
+
   if(ARG_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "generate_messages() called with unused arguments: ${ARG_UNPARSED_ARGUMENTS}")
   endif()
@@ -156,10 +180,10 @@ macro(generate_messages)
 
 @[if DEVELSPACE]@
   # cmake dir in develspace
-  set(genmsg_CMAKE_DIR @(CMAKE_CURRENT_SOURCE_DIR)/cmake)
+  set(genmsg_CMAKE_DIR "@(CMAKE_CURRENT_SOURCE_DIR)/cmake")
 @[else]@
   # cmake dir in installspace
-  set(genmsg_CMAKE_DIR @(PKG_CMAKE_DIR))
+  set(genmsg_CMAKE_DIR "@(PKG_CMAKE_DIR)")
 @[end if]@
 
   # ensure that destination variables are initialized
@@ -172,7 +196,7 @@ macro(generate_messages)
     ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/${PROJECT_NAME}-msg-paths.cmake
     @@ONLY)
   # generate and install config of message include dirs for project
-  _prepend_path(${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME} "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_INSTALLSPACE}" INCLUDE_DIRS_W_PATH)
+  _prepend_path(${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME} "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_INSTALLSPACE}" INCLUDE_DIRS_W_PATH UNIQUE)
   set(PKG_MSG_INCLUDE_DIRS "${INCLUDE_DIRS_W_PATH}")
   configure_file(
     ${genmsg_CMAKE_DIR}/pkg-msg-paths.cmake.in

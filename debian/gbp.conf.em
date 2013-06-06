@@ -1,3 +1,3 @@
 [git-buildpackage]
-upstream-branch=release/genmsg/0.4.17
+upstream-branch=@(release_tag)
 upstream-tree=branch

@@ -32,11 +32,17 @@ dep_search_paths = dep_search_paths_dict
 
 msg_deps = {}
 for m in messages:
-  msg_deps[m] = genmsg.deps.find_msg_dependencies(pkg_name, m, dep_search_paths)
+  try:
+    msg_deps[m] = genmsg.deps.find_msg_dependencies(pkg_name, m, dep_search_paths)
+  except genmsg.MsgNotFound as e:
+    print('message(FATAL_ERROR "Could not find messages which \'%s\' depends on. Did you forget to specify generate_messages(DEPENDENCIES ...)?\n%s")' % (m, str(e)))
 
 srv_deps = {}
 for s in services:
-  srv_deps[s] = genmsg.deps.find_srv_dependencies(pkg_name, s, dep_search_paths)
+  try:
+    srv_deps[s] = genmsg.deps.find_srv_dependencies(pkg_name, s, dep_search_paths)
+  except genmsg.MsgNotFound as e:
+    print('message(FATAL_ERROR "Could not find messages which \'%s\' depends on. Did you forget to specify generate_messages(DEPENDENCIES ...)?\n%s")' % (s, str(e)))
 
 }@
 message(STATUS "@(pkg_name): @(len(messages)) messages, @(len(services)) services")
@@ -50,8 +56,7 @@ find_package(@l REQUIRED)
 @[end for]@
 @[end if]@
 
-#better way to handle this?
-set (ALL_GEN_OUTPUT_FILES_cpp "")
+add_custom_target(@(pkg_name)_generate_messages ALL)
 
 #
 #  langs = @langs
@@ -61,9 +66,9 @@ set (ALL_GEN_OUTPUT_FILES_cpp "")
 @[for l in langs.split(';')]@
 ### Section generating for lang: @l
 ### Generating Messages
-@[for m in messages]@
+@[for m in msg_deps.keys()]@
 _generate_msg_@(l[3:])(@pkg_name
-  @m
+  "@m"
   "${MSG_I_FLAGS}"
   "@(';'.join(msg_deps[m]).replace("\\","/"))"
   ${CATKIN_DEVEL_PREFIX}/${@(l)_INSTALL_DIR}/@pkg_name
@@ -71,9 +76,9 @@ _generate_msg_@(l[3:])(@pkg_name
 @[end for]@# messages
 
 ### Generating Services
-@[for s in services]@
+@[for s in srv_deps.keys()]@
 _generate_srv_@(l[3:])(@pkg_name
-  @s
+  "@s"
   "${MSG_I_FLAGS}"
   "@(';'.join(srv_deps[s]).replace("\\","/"))"
   ${CATKIN_DEVEL_PREFIX}/${@(l)_INSTALL_DIR}/@pkg_name
@@ -86,9 +91,17 @@ _generate_module_@(l[3:])(@pkg_name
   "${ALL_GEN_OUTPUT_FILES_@(l[3:])}"
 )
 
-add_custom_target(@(pkg_name)_@(l) ALL
+add_custom_target(@(pkg_name)_generate_messages_@(l[3:])
   DEPENDS ${ALL_GEN_OUTPUT_FILES_@(l[3:])}
 )
+add_dependencies(@(pkg_name)_generate_messages @(pkg_name)_generate_messages_@(l[3:]))
+
+# target for backward compatibility
+add_custom_target(@(pkg_name)_@(l))
+add_dependencies(@(pkg_name)_@(l) @(pkg_name)_generate_messages_@(l[3:]))
+
+# register target for catkin_package(EXPORTED_TARGETS)
+list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS @(pkg_name)_generate_messages_@(l[3:]))
 
 @[end for]@# langs
 @[end if]@
@@ -121,7 +134,7 @@ if(@(l)_INSTALL_DIR)
   )
 endif()
 @[for d in dependencies]@
-add_dependencies(@(pkg_name)_@(l) @(d)_@(l))
+add_dependencies(@(pkg_name)_generate_messages_@(l[3:]) @(d)_generate_messages_@(l[3:]))
 @[end for]@# dependencies
 @[end for]@# langs
 @[end if]@
