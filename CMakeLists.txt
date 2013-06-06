@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.3)
 project(genmsg)
 find_package(catkin REQUIRED)
 
@@ -13,4 +13,4 @@ install(
 
 catkin_python_setup()
 
-catkin_add_nosetests(${PROJECT_SOURCE_DIR})
+catkin_add_nosetests(test)

@@ -6,7 +6,9 @@ endif()
 set(_GENMSG_EXTRAS_INCLUDED_ TRUE)
 
 # set destination for langs
-set(GENMSG_LANGS_DESTINATION "etc/langs")
+set(GENMSG_LANGS_DESTINATION "etc/ros/genmsg")
+
+include(CMakeParseArguments)
 
 # find message generators in all workspaces
 set(message_generators "")
@@ -35,17 +37,25 @@ endif()
 debug_message(1 "Using these message generators: ${CATKIN_MESSAGE_GENERATORS}")
 
 macro(_prepend_path ARG_PATH ARG_FILES ARG_OUTPUT_VAR)
+  cmake_parse_arguments(ARG "UNIQUE" "" "" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "_prepend_path() called with unused arguments: ${ARG_UNPARSED_ARGUMENTS}")
+  endif()
   # todo, check for proper path, slasheds, etc
   set(${ARG_OUTPUT_VAR} "")
-  foreach(file ${ARG_FILES})
-    list(APPEND ${ARG_OUTPUT_VAR} ${ARG_PATH}/${file})
+  foreach(_file ${ARG_FILES})
+    set(_value ${ARG_PATH}/${_file})
+    list(FIND ${ARG_OUTPUT_VAR} ${_value} _index)
+    if(NOT ARG_UNIQUE OR _index EQUAL -1)
+      list(APPEND ${ARG_OUTPUT_VAR} ${_value})
+    endif()
   endforeach()
 endmacro()
 
 macro(add_message_files)
-  parse_arguments(ARG "DIRECTORY;FILES;BASE_DIR" "NOINSTALL" ${ARGN})
-  if(ARG_DEFAULT_ARGS)
-    message(FATAL_ERROR "add_message_files() called with unused arguments: ${ARG_DEFAULT_ARGS}")
+  cmake_parse_arguments(ARG "NOINSTALL" "DIRECTORY;BASE_DIR" "FILES" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "add_message_files() called with unused arguments: ${ARG_UNPARSED_ARGUMENTS}")
   endif()
 
   if(NOT ARG_DIRECTORY)
@@ -62,6 +72,18 @@ macro(add_message_files)
     message(FATAL_ERROR "add_message_files() directory not found: ${MESSAGE_DIR}")
   endif()
 
+  if(${PROJECT_NAME}_GENERATE_MESSAGES)
+    message(FATAL_ERROR "generate_messages() must be called after add_message_files()")
+  endif()
+
+  # if FILES are not passed search message files in the given directory
+  # note: ARGV is not variable, so it can not be passed to list(FIND) directly
+  set(_argv ${ARGV})
+  list(FIND _argv "FILES" _index)
+  if(_index EQUAL -1)
+    file(GLOB ARG_FILES RELATIVE "${MESSAGE_DIR}" "${MESSAGE_DIR}/*.msg")
+    list(SORT ARG_FILES)
+  endif()
   _prepend_path(${MESSAGE_DIR} "${ARG_FILES}" FILES_W_PATH)
 
   list(APPEND ${PROJECT_NAME}_MESSAGE_FILES ${FILES_W_PATH})
@@ -71,19 +93,25 @@ macro(add_message_files)
   endforeach()
 
   # remember path to messages to resolve them as dependencies
-  list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_BUILDSPACE ${MESSAGE_DIR})
-  list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_INSTALLSPACE ${ARG_DIRECTORY})
+  list(FIND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE ${MESSAGE_DIR} _index)
+  if(_index EQUAL -1)
+    list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE ${MESSAGE_DIR})
+  endif()
 
   if(NOT ARG_NOINSTALL)
+    # ensure that destination variables are initialized
+    catkin_destinations()
+
+    list(APPEND ${PROJECT_NAME}_MSG_INCLUDE_DIRS_INSTALLSPACE ${ARG_DIRECTORY})
     install(FILES ${FILES_W_PATH}
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${ARG_DIRECTORY})
   endif()
 endmacro()
 
 macro(add_service_files)
-  parse_arguments(ARG "DIRECTORY;FILES" "NOINSTALL" ${ARGN})
-  if(ARG_DEFAULT_ARGS)
-    message(FATAL_ERROR "add_service_files() called with unused arguments: ${ARG_DEFAULT_ARGS}")
+  cmake_parse_arguments(ARG "NOINSTALL" "DIRECTORY" "FILES" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "add_service_files() called with unused arguments: ${ARG_UNPARSED_ARGUMENTS}")
   endif()
 
   if(NOT ARG_DIRECTORY)
@@ -96,6 +124,18 @@ macro(add_service_files)
     message(FATAL_ERROR "add_service_files() directory not found: ${SERVICE_DIR}")
   endif()
 
+  if(${PROJECT_NAME}_GENERATE_MESSAGES)
+    message(FATAL_ERROR "generate_messages() must be called after add_service_files()")
+  endif()
+
+  # if FILES are not passed search service files in the given directory
+  # note: ARGV is not variable, so it can not be passed to list(FIND) directly
+  set(_argv ${ARGV})
+  list(FIND _argv "FILES" _index)
+  if(_index EQUAL -1)
+    file(GLOB ARG_FILES RELATIVE "${SERVICE_DIR}" "${SERVICE_DIR}/*.srv")
+    list(SORT ARG_FILES)
+  endif()
   _prepend_path(${SERVICE_DIR} "${ARG_FILES}" FILES_W_PATH)
 
   list(APPEND ${PROJECT_NAME}_SERVICE_FILES ${FILES_W_PATH})
@@ -105,15 +145,27 @@ macro(add_service_files)
   endforeach()
 
   if(NOT ARG_NOINSTALL)
+    # ensure that destination variables are initialized
+    catkin_destinations()
+
     install(FILES ${FILES_W_PATH}
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${ARG_DIRECTORY})
   endif()
 endmacro()
 
 macro(generate_messages)
-  parse_arguments(ARG "DEPENDENCIES;LANGS" "" ${ARGN})
-  if(ARG_DEFAULT_ARGS)
-    message(FATAL_ERROR "generate_messages() called with unused arguments: ${ARG_DEFAULT_ARGS}")
+  cmake_parse_arguments(ARG "" "" "DEPENDENCIES;LANGS" ${ARGN})
+
+  if(${PROJECT_NAME}_GENERATE_MESSAGES)
+    message(FATAL_ERROR "generate_messages() must only be called once per project'")
+  endif()
+
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "generate_messages() called with unused arguments: ${ARG_UNPARSED_ARGUMENTS}")
+  endif()
+
+  if(${PROJECT_NAME}_CATKIN_PACKAGE)
+    message(FATAL_ERROR "generate_messages() must be called before catkin_package() in project '${PROJECT_NAME}'")
   endif()
 
   set(ARG_MESSAGES ${${PROJECT_NAME}_MESSAGE_FILES})
@@ -126,41 +178,49 @@ macro(generate_messages)
     set(GEN_LANGS ${CATKIN_MESSAGE_GENERATORS})
   endif()
 
-  if (@BUILDSPACE@)
-    set(genmsg_CMAKE_DIR @CMAKE_CURRENT_SOURCE_DIR@/cmake)
-  else()
-    set(genmsg_CMAKE_DIR @PKG_CMAKE_DIR@)
-  endif()
+@[if DEVELSPACE]@
+  # cmake dir in develspace
+  set(genmsg_CMAKE_DIR "@(CMAKE_CURRENT_SOURCE_DIR)/cmake")
+@[else]@
+  # cmake dir in installspace
+  set(genmsg_CMAKE_DIR "@(PKG_CMAKE_DIR)")
+@[end if]@
 
-  # generate buildspace config of message include dirs for project
-  set(PKG_MSG_INCLUDE_DIRS "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_BUILDSPACE}")
+  # ensure that destination variables are initialized
+  catkin_destinations()
+
+  # generate devel space config of message include dirs for project
+  set(PKG_MSG_INCLUDE_DIRS "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_DEVELSPACE}")
   configure_file(
     ${genmsg_CMAKE_DIR}/pkg-msg-paths.cmake.in
-    ${CATKIN_BUILD_PREFIX}/share/${PROJECT_NAME}/cmake/${PROJECT_NAME}-msg-paths.cmake
-    @ONLY)
+    ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/${PROJECT_NAME}-msg-paths.cmake
+    @@ONLY)
   # generate and install config of message include dirs for project
-  _prepend_path(${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME} "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_INSTALLSPACE}" INCLUDE_DIRS_W_PATH)
+  _prepend_path(${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME} "${${PROJECT_NAME}_MSG_INCLUDE_DIRS_INSTALLSPACE}" INCLUDE_DIRS_W_PATH UNIQUE)
   set(PKG_MSG_INCLUDE_DIRS "${INCLUDE_DIRS_W_PATH}")
   configure_file(
     ${genmsg_CMAKE_DIR}/pkg-msg-paths.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/installspace/${PROJECT_NAME}-msg-paths.cmake
-    @ONLY)
+    @@ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/catkin_generated/installspace/${PROJECT_NAME}-msg-paths.cmake
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake)
 
-  foreach(dep ${PROJECT_NAME} ${ARG_DEPENDENCIES})
+  # find configuration containing include dirs for projects in all devel- and installspaces
+  set(workspaces ${CATKIN_WORKSPACES})
+  list(FIND workspaces ${CATKIN_DEVEL_PREFIX} _index)
+  if(_index EQUAL -1)
+    list(INSERT workspaces 0 ${CATKIN_DEVEL_PREFIX})
+  endif()
+
+  set(pending_deps ${PROJECT_NAME} ${ARG_DEPENDENCIES})
+  set(handled_deps "")
+  while(pending_deps)
+    list(GET pending_deps 0 dep)
+    list(REMOVE_AT pending_deps 0)
+    list(APPEND handled_deps ${dep})
+
     if(NOT ${dep}_FOUND AND NOT ${dep}_SOURCE_DIR)
       message(FATAL_ERROR "Messages depends on unknown pkg: ${dep} (Missing find_package(${dep}?))")
-    endif()
-
-    # find configuration containing include dirs for projects in all build- and installspaces
-    set(workspaces "")
-    foreach(workspace ${CATKIN_WORKSPACES})
-      list(APPEND workspaces ${workspace})
-    endforeach()
-    list(FIND workspaces ${CATKIN_BUILD_PREFIX} _index)
-    if(_index EQUAL -1)
-      list(INSERT workspaces 0 ${CATKIN_BUILD_PREFIX})
     endif()
 
     unset(config CACHE)
@@ -177,12 +237,23 @@ macro(generate_messages)
       list(APPEND MSG_INCLUDE_DIRS "${dep}")
       list(APPEND MSG_INCLUDE_DIRS "${path}")
     endforeach()
-  endforeach()
+
+    # add transitive msg dependencies
+    if(NOT ${dep} STREQUAL ${PROJECT_NAME})
+      foreach(recdep ${${dep}_MSG_DEPENDENCIES})
+        set(all_deps ${handled_deps} ${pending_deps})
+        list(FIND all_deps ${recdep} _index)
+        if(_index EQUAL -1)
+          list(APPEND pending_deps ${recdep})
+        endif()
+      endforeach()
+    endif()
+  endwhile()
 
   # mark that generate_messages() was called in order to detect wrong order of calling with catkin_python_setup()
   set(${PROJECT_NAME}_GENERATE_MESSAGES TRUE)
-  # check if catkin_python_setup() was called in order to disable installation of gen/py stuff
-  set(SKIP_INSTALL_GEN_PY ${${PROJECT_NAME}_CATKIN_PYTHON_SETUP})
+  # check if catkin_python_setup() was called in order to skip installation of generated __init__.py file
+  set(package_has_static_sources ${${PROJECT_NAME}_CATKIN_PYTHON_SETUP})
 
   em_expand(${genmsg_CMAKE_DIR}/pkg-genmsg.context.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}-genmsg-context.py
