@@ -30,6 +30,9 @@ for val in dep_search_paths:
         is_even = True
 dep_search_paths = dep_search_paths_dict
 
+if not messages and not services:
+    print('message(WARNING "Invoking generate_messages() without having added any message or service file before.\nYou should either add add_message_files() and/or add_service_files() calls or remove the invocation of generate_messages().")')
+
 msg_deps = {}
 for m in messages:
   try:
@@ -111,7 +114,7 @@ debug_message(2 "@pkg_name: Iflags=${MSG_I_FLAGS}")
 @[if langs]@
 @[for l in langs.split(';')]@
 
-if(@(l)_INSTALL_DIR)
+if(@(l)_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${@(l)_INSTALL_DIR}/@pkg_name)
 @[if l == 'genpy']@
   install(CODE "execute_process(COMMAND \"@(PYTHON_EXECUTABLE)\" -m compileall \"${CATKIN_DEVEL_PREFIX}/${@(l)_INSTALL_DIR}/@pkg_name\")")
 @[end if]@
