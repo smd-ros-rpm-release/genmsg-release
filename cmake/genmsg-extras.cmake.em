@@ -154,7 +154,7 @@ macro(add_service_files)
     install(FILES ${FILES_W_PATH}
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${ARG_DIRECTORY})
 
-    _prepend_path("${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/${ARG_DIRECTORY}" "${ARG_FILES}" FILES_W_PATH)
+    _prepend_path("${ARG_DIRECTORY}" "${ARG_FILES}" FILES_W_PATH)
     list(APPEND ${PROJECT_NAME}_INSTALLED_SERVICE_FILES ${FILES_W_PATH})
   endif()
 endmacro()
@@ -249,15 +249,15 @@ macro(generate_messages)
       message(FATAL_ERROR "Messages depends on unknown pkg: ${dep} (Missing find_package(${dep}?))")
     endif()
 
-    unset(config CACHE)
+    unset(_dep_msg_paths_file CACHE)
     set(filename "share/${dep}/cmake/${dep}-msg-paths.cmake")
-    find_file(config ${filename} PATHS ${workspaces}
+    find_file(_dep_msg_paths_file ${filename} PATHS ${workspaces}
       NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
-    if("${config}" STREQUAL "config-NOTFOUND")
+    if("${_dep_msg_paths_file}" STREQUAL "_dep_msg_paths_file-NOTFOUND")
       message(FATAL_ERROR "Could not find '${filename}' (searched in '${workspaces}').")
     endif()
-    include(${config})
-    unset(config CACHE)
+    include(${_dep_msg_paths_file})
+    unset(_dep_msg_paths_file CACHE)
 
     # explicitly set message include dirs for current project since information from pkg-msg-paths.cmake is not yet available
     if(${dep} STREQUAL ${PROJECT_NAME})
@@ -282,8 +282,9 @@ macro(generate_messages)
 
   # mark that generate_messages() was called in order to detect wrong order of calling with catkin_python_setup()
   set(${PROJECT_NAME}_GENERATE_MESSAGES TRUE)
-  # check if catkin_python_setup() was called in order to skip installation of generated __init__.py file
-  set(package_has_static_sources ${${PROJECT_NAME}_CATKIN_PYTHON_SETUP})
+  # check if catkin_python_setup() installs an __init__.py file for a package with the current project name
+  # in order to skip the installation of a generated __init__.py file
+  set(package_has_static_sources ${${PROJECT_NAME}_CATKIN_PYTHON_SETUP_HAS_PACKAGE_INIT})
 
   em_expand(${genmsg_CMAKE_DIR}/pkg-genmsg.context.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}-genmsg-context.py
