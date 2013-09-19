@@ -1,0 +1,63 @@
+ros-groovy-genmsg (0.4.23-0oneiric) oneiric; urgency=high
+
+  * fix installation of __init__.py file for packages where name differs from project name (#34 <https://github.com/ros/genmsg/issues/34>)
+  * rename variable 'config' to not collide with global variable (#33 <https://github.com/ros/genmsg/issues/33>)
+  * fix service files variable to only contain package relative paths (#32 <https://github.com/ros/genmsg/issues/32>)
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Tue, 17 Sep 2013 07:00:00 -0000
+
+ros-groovy-genmsg (0.4.22-0oneiric) oneiric; urgency=high
+
+  * make genmsg relocatable (ros/catkin#490 <https://github.com/ros/catkin/issues/490>)
+  * add warning in case generate_messages() is invoked without any messages and services (#31 <https://github.com/ros/genmsg/issues/31>)
+  * check if files have been generated before trying to install them (#31 <https://github.com/ros/genmsg/issues/31>)
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Wed, 21 Aug 2013 07:00:00 -0000
+
+ros-groovy-genmsg (0.4.21-0oneiric) oneiric; urgency=high
+
+  * check for CATKIN_ENABLE_TESTING to enable configure without tests
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Wed, 03 Jul 2013 07:00:00 -0000
+
+ros-groovy-genmsg (0.4.20-0oneiric) oneiric; urgency=high
+
+  * generate pkg config extra files containing variables which list all message and service files (#28 <https://github.com/ros/genmsg/issues/28>)
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Tue, 18 Jun 2013 07:00:00 -0000
+
+ros-groovy-genmsg (0.4.19-0oneiric) oneiric; urgency=high
+
+  * improve error message for missing message dependencies (#1 <https://github.com/ros/genmsg/issues/1>)
+  * fix generating duplicate include dirs for multiple add_message_files() invocations which broke generated lisp messages (#27 <https://github.com/ros/genmsg/issues/27>)
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Thu, 06 Jun 2013 07:00:00 -0000
+
+ros-groovy-genmsg (0.4.18-0oneiric) oneiric; urgency=high
+
+  * fix handling spaces in folder names (ros/catkin#375 <https://github.com/ros/catkin/issues/375>)
+  * add targets with _generate_messages_LANG suffix (#20 <https://github.com/ros/genmsg/issues/20>)
+  * pass all message generation target to EXPORTED_TARGETS (#26 <https://github.com/ros/genmsg/issues/26>)
+  * improve error messages (#22 <https://github.com/ros/genmsg/issues/22>)
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Fri, 08 Mar 2013 08:00:00 -0000
+
+ros-groovy-genmsg (0.4.17-0oneiric) oneiric; urgency=high
+
+  * fix bug using ARGV in list(FIND) directly (#18 <https://github.com/ros/genmsg/issues/18>)
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Sat, 19 Jan 2013 08:00:00 -0000
+
+ros-groovy-genmsg (0.4.16-0oneiric) oneiric; urgency=high
+
+  * hide transitive message dependencies and pull them in automatically (#15 <https://github.com/ros/genmsg/issues/15>)
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Sun, 13 Jan 2013 08:00:00 -0000
+
+ros-groovy-genmsg (0.4.15-0oneiric) oneiric; urgency=high
+
+  * first public release for Groovy
+
+ -- Dirk Thomas <dthomas@osrfoundation.org>  Fri, 21 Dec 2012 08:00:00 -0000
+
+
