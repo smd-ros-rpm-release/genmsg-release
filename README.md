@@ -1,5 +1,24 @@
 ## genmsg - 0.4.24-0
 
+User `dthomas@drudge` released the packages in the `genmsg` repository by running `/usr/bin/bloom-release -r indigo -t indigo genmsg` on `Wed, 29 Jan 2014 21:20:09 -0000`
+
+The `genmsg` package was released.
+
+Version of package(s) in repository `genmsg`:
+- rosdistro version: `null`
+- old version: `None-0`
+- new version: `0.4.24-0`
+
+Versions of tools used:
+- bloom version: `0.4.7`
+- catkin_pkg version: `0.1.25`
+- rosdep version: `0.10.25`
+- rosdistro version: `0.3.3`
+- vcstools version: `0.1.33`
+
+
+## genmsg - 0.4.24-0
+
 User `dthomas@drudge` released the packages in the `genmsg` repository by running `/usr/bin/bloom-release -t hydro -r hydro genmsg` on `Wed, 08 Jan 2014 06:15:03 -0000`
 
 The `genmsg` package was released.
