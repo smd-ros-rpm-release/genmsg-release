@@ -109,8 +109,6 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS @(pkg_name)_generate_messages_@(l[3
 @[end for]@# langs
 @[end if]@
 
-debug_message(2 "@pkg_name: Iflags=${MSG_I_FLAGS}")
-
 @[if langs]@
 @[for l in langs.split(';')]@
 
@@ -132,7 +130,7 @@ if(@(l)_INSTALL_DIR AND EXISTS ${CATKIN_DEVEL_PREFIX}/${@(l)_INSTALL_DIR}/@pkg_n
     DIRECTORY ${CATKIN_DEVEL_PREFIX}/${@(l)_INSTALL_DIR}/@pkg_name
     DESTINATION ${@(l)_INSTALL_DIR}
     FILES_MATCHING
-    REGEX "/@(pkg_name)/.+/__init__.pyc?$"
+    REGEX "${CATKIN_DEVEL_PREFIX}/${@(l)_INSTALL_DIR}/@(pkg_name)/.+/__init__.pyc?$"
 @[end if]@
   )
 endif()
