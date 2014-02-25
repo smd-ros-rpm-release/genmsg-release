@@ -2,6 +2,17 @@
 Changelog for package genmsg
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.25 (2014-02-25)
+-------------------
+* remove usage of debug_message() (`#40 <https://github.com/ros/genmsg/issues/40>`_)
+* revert "python 3 compatibility" (introduced in 0.4.24)
+
+0.4.24 (2014-01-07)
+-------------------
+* python 3 compatibility (`#36 <https://github.com/ros/genmsg/issues/36>`_, `#37 <https://github.com/ros/genmsg/issues/37>`_)
+* add support for ROS_LANG_DISABLE env variable (`ros/ros#39 <https://github.com/ros/ros/issues/39>`_)
+* fix installation of __init__.py from devel space (`#38 <https://github.com/ros/genmsg/issues/38>`_)
+
 0.4.23 (2013-09-17)
 -------------------
 * fix installation of __init__.py file for packages where name differs from project name (`#34 <https://github.com/ros/genmsg/issues/34>`_)
