@@ -1,3 +1,22 @@
+## genmsg (indigo) - 0.5.3-0
+
+The packages in the `genmsg` repository were released into the `indigo` distro by running `/usr/bin/bloom-release -r indigo -t indigo genmsg` on `Fri, 11 Jul 2014 00:45:43 -0000`
+
+The `genmsg` package was released.
+
+Version of package(s) in repository `genmsg`:
+- rosdistro version: `0.5.2-0`
+- old version: `0.5.2-0`
+- new version: `0.5.3-0`
+
+Versions of tools used:
+- bloom version: `0.5.10`
+- catkin_pkg version: `0.2.3`
+- rosdep version: `0.10.28`
+- rosdistro version: `0.3.5`
+- vcstools version: `0.1.35`
+
+
 ## genmsg (indigo) - 0.5.2-0
 
 The packages in the `genmsg` repository were released into the `indigo` distro by running `/usr/bin/bloom-release -r indigo -t indigo genmsg` on `Wed, 07 May 2014 20:41:54 -0000`
