@@ -9,15 +9,11 @@ install(
   cmake/pkg-genmsg.cmake.em
   cmake/pkg-genmsg.context.in
   cmake/pkg-msg-extras.cmake.in
-  cmake/pkg-msg-paths.cmake.develspace.in
-  cmake/pkg-msg-paths.cmake.installspace.in
+  cmake/pkg-msg-paths.cmake.em
+  cmake/pkg-msg-paths.context.in
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake)
 
 catkin_python_setup()
-
-install(
-  PROGRAMS scripts/genmsg_check_deps.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test)
